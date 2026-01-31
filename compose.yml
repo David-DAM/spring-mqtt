@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  mqtt:
+    image: eclipse-mosquitto:2.1-alpine
+    container_name: mqtt_broker
+    ports:
+      - "1883:1883" # MQTT
+      - "9001:9001" # Websockets
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mqtt_data:/mosquitto/data
+      - mqtt_log:/mosquitto/log
+
+volumes:
+  mqtt_data:
+  mqtt_log:
+
+
+
