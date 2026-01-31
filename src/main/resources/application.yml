@@ -1,3 +1,12 @@
 spring:
   application:
     name: spring-mqtt
+
+app:
+  mqtt:
+    host: tcp://localhost:1883
+    client-id: spring-mqtt-client
+    inbound:
+      topic: robots/+/+/telemetry
+    outbound:
+      topic: robots/+/+/commands

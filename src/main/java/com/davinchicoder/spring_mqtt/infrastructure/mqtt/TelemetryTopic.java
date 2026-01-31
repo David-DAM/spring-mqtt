@@ -4,7 +4,7 @@ public record TelemetryTopic(
         String tenantId,
         String robotId
 ) {
-    public static TelemetryTopic from(String topic) {
+    public static TelemetryTopic of(String topic) {
         String[] p = topic.split("/");
         return new TelemetryTopic(p[1], p[2]);
     }

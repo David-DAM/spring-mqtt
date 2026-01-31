@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class MqttInboundListener {
 
-
     @ServiceActivator(inputChannel = "mqttInputChannel")
     public void handle(Message<String> message) {
 
@@ -25,7 +24,7 @@ public class MqttInboundListener {
             return;
         }
 
-        TelemetryTopic t = TelemetryTopic.from(topic);
+        TelemetryTopic telemetryTopic = TelemetryTopic.of(topic);
     }
 }
 

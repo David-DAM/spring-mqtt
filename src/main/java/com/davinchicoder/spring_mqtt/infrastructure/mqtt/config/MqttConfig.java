@@ -1,6 +1,7 @@
 package com.davinchicoder.spring_mqtt.infrastructure.mqtt.config;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -17,14 +18,24 @@ import java.util.UUID;
 
 @Configuration
 public class MqttConfig {
-    //Consumer
+
+    @Value("${app.mqtt.host}")
+    private String host;
+
+    @Value("${app.mqtt.client-id}")
+    private String clientId;
+
+    @Value("${app.mqtt.inbound.topic}")
+    private String mqttInboundTopic;
+
+
     @Bean
     public MqttPahoClientFactory mqttClientFactory() {
 
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
 
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setServerURIs(new String[]{"tcp://localhost:1883"});
+        options.setServerURIs(new String[]{host});
         options.setAutomaticReconnect(true);
         options.setCleanSession(false);
         options.setConnectionTimeout(10);
@@ -33,6 +44,7 @@ public class MqttConfig {
         return factory;
     }
 
+    //Consumer
     @Bean
     public MessageChannel mqttInputChannel() {
         return new QueueChannel(10_000);
@@ -45,9 +57,9 @@ public class MqttConfig {
 
         MqttPahoMessageDrivenChannelAdapter adapter =
                 new MqttPahoMessageDrivenChannelAdapter(
-                        "mqtt-consumer-" + UUID.randomUUID(),
+                        clientId + UUID.randomUUID(),
                         factory,
-                        "robots/+/+/telemetry"
+                        mqttInboundTopic
                 );
 
         adapter.setQos(1);
@@ -68,13 +80,12 @@ public class MqttConfig {
     ) {
 
         MqttPahoMessageHandler handler = new MqttPahoMessageHandler(
-                "mqtt-producer-" + UUID.randomUUID(),
+                clientId + UUID.randomUUID(),
                 factory
         );
 
         handler.setAsync(true);
         handler.setDefaultQos(1);
-        handler.setDefaultTopic("robots/+/+/commands/#");
 
         return handler;
     }
