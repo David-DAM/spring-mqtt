@@ -7,17 +7,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
+import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
 import java.util.UUID;
 
+@EnableIntegration
 @Configuration
-public class MqttConfig {
+public class MqttBrokerConfig {
 
     @Value("${app.mqtt.host}")
     private String host;
@@ -28,6 +32,9 @@ public class MqttConfig {
     @Value("${app.mqtt.inbound.topic}")
     private String mqttInboundTopic;
 
+    @Value("${app.mqtt.outbound.topic}")
+    private String mqttOutboundTopic;
+
 
     @Bean
     public MqttPahoClientFactory mqttClientFactory() {
@@ -37,8 +44,10 @@ public class MqttConfig {
         MqttConnectOptions options = new MqttConnectOptions();
         options.setServerURIs(new String[]{host});
         options.setAutomaticReconnect(true);
-        options.setCleanSession(false);
+        options.setCleanSession(true);
         options.setConnectionTimeout(10);
+        options.setMaxInflight(100);
+        options.setKeepAliveInterval(20);
 
         factory.setConnectionOptions(options);
         return factory;
@@ -51,19 +60,14 @@ public class MqttConfig {
     }
 
     @Bean
-    public MqttPahoMessageDrivenChannelAdapter mqttInbound(
-            MqttPahoClientFactory factory
-    ) {
-
+    public MessageProducer mqttInbound() {
         MqttPahoMessageDrivenChannelAdapter adapter =
-                new MqttPahoMessageDrivenChannelAdapter(
-                        clientId + UUID.randomUUID(),
-                        factory,
-                        mqttInboundTopic
-                );
-
-        adapter.setQos(1);
+                new MqttPahoMessageDrivenChannelAdapter(clientId, mqttClientFactory(), mqttInboundTopic);
+        adapter.setCompletionTimeout(5000);
+        adapter.setConverter(new DefaultPahoMessageConverter());
+        adapter.setQos(0);
         adapter.setOutputChannel(mqttInputChannel());
+
         return adapter;
     }
 
@@ -85,7 +89,8 @@ public class MqttConfig {
         );
 
         handler.setAsync(true);
-        handler.setDefaultQos(1);
+        handler.setDefaultQos(0);
+        handler.setDefaultTopic(mqttOutboundTopic);
 
         return handler;
     }
