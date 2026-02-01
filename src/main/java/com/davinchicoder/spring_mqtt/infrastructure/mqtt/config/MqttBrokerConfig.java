@@ -79,13 +79,11 @@ public class MqttBrokerConfig {
 
     @Bean
     @ServiceActivator(inputChannel = "mqttOutboundChannel")
-    public MessageHandler mqttOutbound(
-            MqttPahoClientFactory factory
-    ) {
+    public MessageHandler mqttOutbound() {
 
         MqttPahoMessageHandler handler = new MqttPahoMessageHandler(
                 clientId + UUID.randomUUID(),
-                factory
+                mqttClientFactory()
         );
 
         handler.setAsync(true);

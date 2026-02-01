@@ -1,4 +1,4 @@
-package com.davinchicoder.spring_mqtt.infrastructure.databse;
+package com.davinchicoder.spring_mqtt.infrastructure.database;
 
 import lombok.Data;
 
