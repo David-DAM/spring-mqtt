@@ -1,5 +1,6 @@
 package com.davinchicoder.spring_mqtt.infrastructure.mqtt.mapper;
 
+import com.davinchicoder.spring_mqtt.domain.Position;
 import com.davinchicoder.spring_mqtt.domain.RobotCommand;
 import com.davinchicoder.spring_mqtt.domain.RobotTelemetry;
 import com.davinchicoder.spring_mqtt.infrastructure.mqtt.dto.RobotCommandDto;
@@ -16,4 +17,17 @@ public interface RobotMapper {
 
     RobotCommandDto toRobotCommandDto(RobotCommand dto);
 
+
+    default Position toPosition(String position) {
+        String[] split = position.split(";");
+
+        if (split.length != 2) {
+            return null;
+        }
+
+        return Position.builder()
+                .x(split[0])
+                .y(split[1])
+                .build();
+    }
 }

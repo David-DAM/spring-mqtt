@@ -6,7 +6,7 @@ public record RobotTelemetryDto(
         String id,
         double battery,
         double temperature,
-        PositionDto position,
+        String position,
         Instant timestamp
 ) {
 

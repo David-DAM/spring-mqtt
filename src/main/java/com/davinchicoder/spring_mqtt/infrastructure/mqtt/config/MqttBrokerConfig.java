@@ -1,7 +1,7 @@
 package com.davinchicoder.spring_mqtt.infrastructure.mqtt.config;
 
+import lombok.RequiredArgsConstructor;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -20,21 +20,11 @@ import org.springframework.messaging.MessageHandler;
 import java.util.UUID;
 
 @EnableIntegration
+@RequiredArgsConstructor
 @Configuration
 public class MqttBrokerConfig {
 
-    @Value("${app.mqtt.host}")
-    private String host;
-
-    @Value("${app.mqtt.client-id}")
-    private String clientId;
-
-    @Value("${app.mqtt.inbound.topic}")
-    private String mqttInboundTopic;
-
-    @Value("${app.mqtt.outbound.topic}")
-    private String mqttOutboundTopic;
-
+    private final MqttBrokerProperties mqttBrokerProperties;
 
     @Bean
     public MqttPahoClientFactory mqttClientFactory() {
@@ -42,7 +32,7 @@ public class MqttBrokerConfig {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
 
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setServerURIs(new String[]{host});
+        options.setServerURIs(new String[]{mqttBrokerProperties.getHost()});
         options.setAutomaticReconnect(true);
         options.setCleanSession(true);
         options.setConnectionTimeout(10);
@@ -62,7 +52,7 @@ public class MqttBrokerConfig {
     @Bean
     public MessageProducer mqttInbound() {
         MqttPahoMessageDrivenChannelAdapter adapter =
-                new MqttPahoMessageDrivenChannelAdapter(clientId, mqttClientFactory(), mqttInboundTopic);
+                new MqttPahoMessageDrivenChannelAdapter(mqttBrokerProperties.getClientId(), mqttClientFactory(), mqttBrokerProperties.getInboundTopic());
         adapter.setCompletionTimeout(5000);
         adapter.setConverter(new DefaultPahoMessageConverter());
         adapter.setQos(0);
@@ -82,13 +72,13 @@ public class MqttBrokerConfig {
     public MessageHandler mqttOutbound() {
 
         MqttPahoMessageHandler handler = new MqttPahoMessageHandler(
-                clientId + UUID.randomUUID(),
+                mqttBrokerProperties.getClientId() + UUID.randomUUID(),
                 mqttClientFactory()
         );
 
         handler.setAsync(true);
         handler.setDefaultQos(0);
-        handler.setDefaultTopic(mqttOutboundTopic);
+        handler.setDefaultTopic(mqttBrokerProperties.getOutboundTopic());
 
         return handler;
     }

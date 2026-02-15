@@ -1,5 +1,6 @@
 package com.davinchicoder.spring_mqtt.infrastructure.mqtt.consumer;
 
+import com.davinchicoder.spring_mqtt.application.RobotService;
 import com.davinchicoder.spring_mqtt.domain.RobotTelemetry;
 import com.davinchicoder.spring_mqtt.infrastructure.mqtt.dto.RobotTelemetryDto;
 import com.davinchicoder.spring_mqtt.infrastructure.mqtt.mapper.RobotMapper;
@@ -19,6 +20,7 @@ public class RobotTelemetryMqttConsumer implements MessageHandler {
 
     private final JsonMapper jsonMapper;
     private final RobotMapper robotMapper;
+    private final RobotService robotService;
 
     @ServiceActivator(inputChannel = "mqttInputChannel")
     @Override
@@ -33,7 +35,9 @@ public class RobotTelemetryMqttConsumer implements MessageHandler {
 
         RobotTelemetry robotTelemetry = robotMapper.toRobotTelemetry(robotTelemetryDto);
 
-        log.info("Robot telemetry: {}", robotTelemetryDto);
+        robotService.consumeTelemetry(robotTelemetry);
+
+        log.info("Robot telemetry: {} for topic: {}", robotTelemetryDto, topic);
     }
 }
 
